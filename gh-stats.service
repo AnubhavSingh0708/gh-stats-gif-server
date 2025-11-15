@@ -1,3 +1,7 @@
+# NOTE: This service file requires sudo access to use
+# If you don't have sudo (e.g., in a Hackclub Nest), see NO_SUDO_SETUP.md instead
+# Use: screen -S gh-stats -d -m ./ghapp
+
 [Unit]
 Description=GitHub Stats GIF Server
 After=network.target
