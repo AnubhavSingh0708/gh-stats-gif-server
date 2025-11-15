@@ -14,6 +14,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/valyala/fasthttp"
 	"golang.org/x/image/font"
@@ -167,7 +168,7 @@ func fetchStatsData(username string) (*StatsData, error) {
 func getUserData(username string) (*GitHubUser, error) {
 	apiURL := "https://api.github.com/users/" + username
 
-	resp, err := http.Get(apiURL)
+	resp, err := makeRequest("GET", apiURL)
 	if err != nil {
 		return nil, err
 	}
@@ -191,9 +192,31 @@ func getUserData(username string) (*GitHubUser, error) {
 	return &user, nil
 }
 
+// makeRequest creates an HTTP request and attaches a GitHub Authorization header
+// if the GITHUB_TOKEN environment variable is set. It also sets a User-Agent
+// header which GitHub requires.
+func makeRequest(method, url string) (*http.Response, error) {
+	req, err := http.NewRequest(method, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	token := os.Getenv("GITHUB_TOKEN")
+	if token != "" {
+		// Use `token` scheme for GitHub REST v3 (personal access tokens)
+		req.Header.Set("Authorization", "token "+token)
+	}
+
+	// GitHub requires a User-Agent header
+	req.Header.Set("User-Agent", "gh-stats-gif-server")
+
+	return http.DefaultClient.Do(req)
+}
+
 // getAvatar fetches the user's profile picture
 func getAvatar(url string) (image.Image, error) {
-	resp, err := http.Get(url)
+	// Use same request helper so we send a User-Agent and optional auth header
+	resp, err := makeRequest("GET", url)
 	if err != nil {
 		return nil, err
 	}
@@ -218,7 +241,7 @@ func getTotalStars(reposURL string) (int, error) {
 	// This is a good-enough approximation for this app.
 	apiURL := reposURL + "?per_page=100"
 
-	resp, err := http.Get(apiURL)
+	resp, err := makeRequest("GET", apiURL)
 	if err != nil {
 		return 0, err
 	}

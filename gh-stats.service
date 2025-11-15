@@ -1,0 +1,19 @@
+[Unit]
+Description=GitHub Stats GIF Server
+After=network.target
+
+[Service]
+Type=simple
+User=anubhav
+WorkingDirectory=/home/anubhav/code/gh-stats-gif-server
+ExecStart=/home/anubhav/code/gh-stats-gif-server/ghapp
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Optional: Set environment variables (e.g., GitHub token)
+# Environment="GITHUB_TOKEN=your_token_here"
+
+[Install]
+WantedBy=multi-user.target
